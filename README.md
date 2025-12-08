@@ -54,3 +54,21 @@ Si eres nuevo en Godot o en el proyecto, revisa la pestaña de "Issues" para ver
 git clone https://github.com/TU_USUARIO/TU_REPO.git
 cd TU_REPO
 # Abre el proyecto en Godot y ejecuta
+
+
+## 🙏 Créditos
+
+Este proyecto es una adaptación y continuación de **Danger from the Deep**, 
+un simulador de submarinos de la Segunda Guerra Mundial.
+
+Todo el crédito por la idea original, gran parte del diseño y del código base
+pertenece a los autores del proyecto original:
+
+- Proyecto original: https://sourceforge.net/projects/dangerdeep/
+- Autores originales: ver listado en el proyecto de SourceForge
+
+Este repositorio se enfoca en portar y extender el juego usando el motor **Godot Engine**,
+respetando la licencia original (GPL) y manteniendo el proyecto como software libre.
+
+Para una lista más detallada de autores y colaboradores, ver [CREDITS.md](./CREDITS.md).
+
