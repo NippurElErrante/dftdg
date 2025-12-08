@@ -1,74 +1,76 @@
 # Danger From The Deep - Godot Edition
 
-![Estado del proyecto](https://img.shields.io/badge/Estado-En_Desarrollo-orange)
-![Motor](https://img.shields.io/badge/Godot-4.x-%23478cbf)
-![Licencia](https://img.shields.io/badge/Licencia-GPLv3-blue)
+![Project Status](https://img.shields.io/badge/Status-In_Development-orange)
+![Engine](https://img.shields.io/badge/Godot-4.x-%23478cbf)
+![License](https://img.shields.io/badge/License-GPLv3-blue)
+![Languages](https://img.shields.io/badge/Languages-ES%20|%20EN-blue)
 
-**Danger From The Deep** es un esfuerzo comunitario para revivir y modernizar el clásico simulador de submarinos alemanes de la Segunda Guerra Mundial.
+> 🌐 **Prefer Spanish?** [Ver versión en español](README.es.md)
 
-Este proyecto tiene como objetivo migrar el código y la lógica del juego original al motor **Godot Engine**, permitiendo una mayor compatibilidad multiplataforma, mejor rendimiento y facilidad para añadir nuevas características.
+**Danger From The Deep** is a community-driven effort to revive and modernize the classic WWII German submarine simulator.
 
-## 🎯 Objetivos del Proyecto
+This project aims to migrate the original game's code and logic to the **Godot Engine**, enabling better cross-platform compatibility, improved performance, and easier addition of new features.
 
-1.  **Migración al Motor Godot:** Portar completamente la base del código y los assets de "Danger from the Deep" a un proyecto funcional en Godot Engine.
-2.  **Preservación:** Mantener la jugabilidad y la atmósfera del simulador original.
-3.  **Mejoras y Expansión:** Implementar:
-    *   Mejoras gráficas (iluminación, shaders, modelos de mayor calidad).
-    *   Optimizaciones de rendimiento y jugabilidad.
-    *   Corrección de bugs históricos del juego original.
-    *   Nuevas misiones, barcos o mecánicas de juego.
-4.  **Código Abierto:** Mantener el proyecto 100% libre y accesible para la comunidad.
+## 🎯 Project Goals
 
-## 📜 Licencia
+1.  **Migration to Godot Engine:** Fully port the codebase and assets from "Danger from the Deep" into a functional Godot Engine project.
+2.  **Preservation:** Maintain the gameplay and atmosphere of the original simulator.
+3.  **Improvements and Expansion:** Implement:
+    *   Graphical enhancements (lighting, shaders, higher-quality models).
+    *   Performance optimizations and gameplay refinements.
+    *   Fixes for historical bugs present in the original game.
+    *   New missions, ships, or gameplay mechanics.
+4.  **Open Source:** Keep the project 100% free and accessible to the community.
 
-Este proyecto es software libre. Está licenciado bajo los términos de la **GNU General Public License v3.0 (GPLv3)**.
+## 📜 License
 
-Al contribuir en este repositorio, aceptas que tus contribuciones se publiquen bajo la misma licencia.
+This project is free software. It is licensed under the terms of the **GNU General Public License v3.0 (GPLv3)**.
 
-> **Nota:** Aunque el código es libre, por favor verifica la licencia de los assets (modelos 3D, texturas y sonidos) originales, ya que podrían tener restricciones diferentes al código fuente.
+By contributing to this repository, you agree that your contributions will be published under the same license.
 
-## 🚀 Cómo Contribuir
+> **Note:** While the code is free, please verify the license of the original assets (3D models, textures, and sounds), as they may have different restrictions than the source code.
 
-¡Las contribuciones son bienvenidas! Este es un proyecto ambicioso y la colaboración es clave. Si estás interesado en contribuir, ya sea con código, arte 2D/3D, sonido, documentación o ideas, por favor sigue estos pasos:
+## 🚀 How to Contribute
 
-1.  **Fork** este repositorio.
-2.  Crea una rama para tu funcionalidad (`git checkout -b feature/nueva-funcionalidad`).
-3.  Realiza tus cambios y asegúrate de que el juego siga compilando.
-4.  Abre un **Pull Request** explicando tus cambios.
+Contributions are welcome! This is an ambitious project, and collaboration is key. If you're interested in helping — whether with code, 2D/3D art, sound design, documentation, or ideas — please follow these steps:
 
-Si eres nuevo en Godot o en el proyecto, revisa la pestaña de "Issues" para ver en qué puedes ayudar.
+1.  **Fork** this repository.
+2.  Create a branch for your feature (`git checkout -b feature/new-feature`).
+3.  Make your changes and ensure the game still builds correctly.
+4.  Open a **Pull Request** explaining your changes.
 
-¡Zarpa con nosotros en esta emocionante misión!
+If you're new to Godot or the project, check the "Issues" tab to see where help is needed.
 
-## 🛠️ Estado Actual
+Set sail with us on this exciting mission!
 
-*   **Motor:** Godot 4.x (Stable)
-*   **Funcionalidades básicas:** [En progreso / Por hacer]
-*   **Gráficos:** [Migrando / Nativos]
+## 🛠️ Current Status
 
-## 📦 Instalación
+*   **Engine:** Godot 4.x (Stable)
+*   **Basic Functionality:** [In Progress / To Do]
+*   **Graphics:** [Migrating / Native]
 
-(Instrucciones breves sobre cómo clonar y ejecutar el proyecto)
+## 📦 Installation
+
+(Brief instructions on how to clone and run the project)
 
 ```bash
-git clone https://github.com/TU_USUARIO/TU_REPO.git
-cd TU_REPO
-# Abre el proyecto en Godot y ejecuta
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+cd YOUR_REPO
+# Open the project in Godot and run
 ```
 
-## 🙏 Créditos
+## 🙏 Credits
 
-Este proyecto es una adaptación y continuación de **Danger from the Deep**, 
-un simulador de submarinos de la Segunda Guerra Mundial.
+This project is an adaptation and continuation of **Danger from the Deep**, 
+a WWII submarine simulator.
 
-Todo el crédito por la idea original, gran parte del diseño y del código base
-pertenece a los autores del proyecto original:
+All credit for the original concept, much of the design, and the base code
+belongs to the authors of the original project:
 
-- Proyecto original: https://sourceforge.net/projects/dangerdeep/
-- Autores originales: ver listado en el proyecto de SourceForge
+- Original project: https://sourceforge.net/projects/dangerdeep/
+- Original authors: See the list on the SourceForge project page
 
-Este repositorio se enfoca en portar y extender el juego usando el motor **Godot Engine**,
-respetando la licencia original (GPL) y manteniendo el proyecto como software libre.
+This repository focuses on porting and extending the game using the **Godot Engine**,
+respecting the original license (GPL) and keeping the project as free software.
 
-Para una lista más detallada de autores y colaboradores, ver [CREDITS.md](./CREDITS.md).
-
+For a more detailed list of contributors, see [CREDITS.md](./CREDITS.md).
