@@ -54,9 +54,9 @@ Si eres nuevo en Godot o en el proyecto, revisa la pestaña de "Issues" para ver
 git clone https://github.com/TU_USUARIO/TU_REPO.git
 cd TU_REPO
 # Abre el proyecto en Godot y ejecuta
+```
 
-
-## 🙏 Créditos
+## 🙏 Instalación
 
 Este proyecto es una adaptación y continuación de **Danger from the Deep**, 
 un simulador de submarinos de la Segunda Guerra Mundial.
