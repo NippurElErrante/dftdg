@@ -5,7 +5,7 @@
 ![Licencia](https://img.shields.io/badge/Licencia-GPLv3-blue)
 ![Languages](https://img.shields.io/badge/Languages-ES%20|%20EN-blue)
 
-> 🌐 **¿Prefieres inglés?** [Ver versión en inglés](README.md)
+> 🌐 **¿Prefer English?** [See English version](README.md)
 
 **Danger From The Deep** es un esfuerzo comunitario para revivir y modernizar el clásico simulador de submarinos alemanes de la Segunda Guerra Mundial.
 
