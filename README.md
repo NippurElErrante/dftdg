@@ -1,2 +1,50 @@
-# dftdg
-Danger from the Deep - Godot Remake
+# Danger From The Deep - Godot Edition
+
+![Estado del proyecto](https://img.shields.io/badge/Estado-En_Desarrollo-orange)
+![Motor](https://img.shields.io/badge/Godot-4.x-%23478cbf)
+![Licencia](https://img.shields.io/badge/Licencia-GPLv3-blue)
+
+**Danger From The Deep** es un esfuerzo comunitario para revivir y modernizar el clásico simulador de submarinos alemanes de la Segunda Guerra Mundial.
+
+Este proyecto tiene como objetivo migrar el código y la lógica del juego original al motor **Godot Engine**, permitiendo una mayor compatibilidad multiplataforma, mejor rendimiento y facilidad para añadir nuevas características.
+
+## 🎯 Objetivos del Proyecto
+
+1.  **Migración al Motor Godot:** Reescribir la lógica del juego utilizando GDScript o C# aprovechando las capacidades modernas de Godot.
+2.  **Preservación:** Mantener la jugabilidad y la atmósfera del simulador original.
+3.  **Mejoras y Expansión:** Implementar mejoras gráficas, corrección de bugs históricos y nuevas mecánicas de juego.
+4.  **Código Abierto:** Mantener el proyecto 100% libre y accesible para la comunidad.
+
+## 📜 Licencia
+
+Este proyecto es software libre. Está licenciado bajo los términos de la **GNU General Public License v3.0 (GPLv3)**.
+
+Al contribuir en este repositorio, aceptas que tus contribuciones se publiquen bajo la misma licencia.
+
+> **Nota:** Aunque el código es libre, por favor verifica la licencia de los assets (modelos 3D, texturas y sonidos) originales, ya que podrían tener restricciones diferentes al código fuente.
+
+## 🚀 Cómo Contribuir
+
+¡Las contribuciones son bienvenidas! Si deseas ayudar, por favor sigue estos pasos:
+
+1.  **Fork** este repositorio.
+2.  Crea una rama para tu funcionalidad (`git checkout -b feature/nueva-funcionalidad`).
+3.  Realiza tus cambios y asegúrate de que el juego siga compilando.
+4.  Abre un **Pull Request** explicando tus cambios.
+
+Si eres nuevo en Godot o en el proyecto, revisa la pestaña de "Issues" para ver en qué puedes ayudar.
+
+## 🛠️ Estado Actual
+
+*   **Motor:** Godot 4.x (Stable)
+*   **Funcionalidades básicas:** [En progreso / Por hacer]
+*   **Gráficos:** [Migrando / Nativos]
+
+## 📦 Instalación
+
+(Instrucciones breves sobre cómo clonar y ejecutar el proyecto)
+
+```bash
+git clone https://github.com/TU_USUARIO/TU_REPO.git
+cd TU_REPO
+# Abre el proyecto en Godot y ejecuta
