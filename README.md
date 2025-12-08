@@ -25,7 +25,7 @@ Al contribuir en este repositorio, aceptas que tus contribuciones se publiquen b
 
 ## 🚀 Cómo Contribuir
 
-¡Las contribuciones son bienvenidas! Si deseas ayudar, por favor sigue estos pasos:
+¡Las contribuciones son bienvenidas! Este es un proyecto ambicioso y la colaboración es clave. Si estás interesado en contribuir, ya sea con código, arte 2D/3D, sonido, documentación o ideas, por favor sigue estos pasos:
 
 1.  **Fork** este repositorio.
 2.  Crea una rama para tu funcionalidad (`git checkout -b feature/nueva-funcionalidad`).
@@ -33,6 +33,8 @@ Al contribuir en este repositorio, aceptas que tus contribuciones se publiquen b
 4.  Abre un **Pull Request** explicando tus cambios.
 
 Si eres nuevo en Godot o en el proyecto, revisa la pestaña de "Issues" para ver en qué puedes ayudar.
+
+¡Zarpa con nosotros en esta emocionante misión!
 
 ## 🛠️ Estado Actual
 
