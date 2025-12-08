@@ -10,9 +10,13 @@ Este proyecto tiene como objetivo migrar el código y la lógica del juego origi
 
 ## 🎯 Objetivos del Proyecto
 
-1.  **Migración al Motor Godot:** Reescribir la lógica del juego utilizando GDScript o C# aprovechando las capacidades modernas de Godot.
+1.  **Migración al Motor Godot:** Portar completamente la base del código y los assets de "Danger from the Deep" a un proyecto funcional en Godot Engine.
 2.  **Preservación:** Mantener la jugabilidad y la atmósfera del simulador original.
-3.  **Mejoras y Expansión:** Implementar mejoras gráficas, corrección de bugs históricos y nuevas mecánicas de juego.
+3.  **Mejoras y Expansión:** Implementar:
+    *   Mejoras gráficas (iluminación, shaders, modelos de mayor calidad).
+    *   Optimizaciones de rendimiento y jugabilidad.
+    *   Corrección de bugs históricos del juego original.
+    *   Nuevas misiones, barcos o mecánicas de juego.
 4.  **Código Abierto:** Mantener el proyecto 100% libre y accesible para la comunidad.
 
 ## 📜 Licencia
