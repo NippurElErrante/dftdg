@@ -56,7 +56,7 @@ cd TU_REPO
 # Abre el proyecto en Godot y ejecuta
 ```
 
-## 🙏 Instalación
+## 🙏 Créditos
 
 Este proyecto es una adaptación y continuación de **Danger from the Deep**, 
 un simulador de submarinos de la Segunda Guerra Mundial.
