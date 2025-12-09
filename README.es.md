@@ -73,4 +73,4 @@ pertenece a los autores del proyecto original:
 Este repositorio se enfoca en portar y extender el juego usando el motor **Godot Engine**,
 respetando la licencia original (GPL) y manteniendo el proyecto como software libre.
 
-Para una lista más detallada de autores y colaboradores, ver [CREDITS.md](./CREDITS.md).
+Para una lista más detallada de autores y colaboradores, ver [CREDITS.md](./CREDITS.es.md).
