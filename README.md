@@ -73,4 +73,14 @@ belongs to the authors of the original project:
 This repository focuses on porting and extending the game using the **Godot Engine**,
 respecting the original license (GPL) and keeping the project as free software.
 
+## Contributors to this Repository
+
+Thanks to everyone who has contributed to this project:
+
+<!-- ALL-CONTRIBUTORS-LIST:START -->
+<!-- GitHub can automatically generate the list of contributors here -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+To see the full list of contributors, visit: [Contributors on GitHub](../../graphs/contributors)
+
 For a more detailed list of contributors, see [CREDITS.md](./CREDITS.md).
