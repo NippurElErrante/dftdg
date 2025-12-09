@@ -1,22 +1,27 @@
-# Créditos
+# Credits
 
-## Proyecto original: Danger from the Deep
+> 🌐 ¿Prefieres español? [Ver versión en español](CREDITS.es.md)
 
-- Nombre del proyecto: Danger from the Deep
-- Página del proyecto: https://sourceforge.net/projects/dangerdeep/
-- Licencia: GNU General Public License (GPL)
+## Original Project: Danger from the Deep
 
-Autores y colaboradores originales:
-- Ver en https://sourceforge.net/projects/dangerdeep/
+- Project name: Danger from the Deep
+- Project page: https://sourceforge.net/projects/dangerdeep/
+- License: GNU General Public License (GPL)
 
-## Port a Godot
+Original authors and contributors:
+- See https://sourceforge.net/projects/dangerdeep/
 
-Este repositorio contiene un port y una adaptación del juego original al motor **Godot Engine**.
+## Port to Godot
 
-Desarrollo y mantenimiento de este fork:
-- Creador Original
-- Colaboradores de este repositorio
+This repository contains a port and adaptation of the original game to the **Godot Engine**.
 
-## Recursos y assets
+Development and maintenance of this fork:
+- Original Creator
+- Contributors to this repository
 
-- 
+## Resources and Assets
+- **3D models, textures, and sounds:** From the original "Danger from the Deep" project.
+- **Asset licenses:** Verify individual licenses in the original project, as they may differ from the GPL license of the code.
+- **New assets for Godot:** [Specify if you will create new models/textures and under what license].
+
+Returno to Readme [Readme](./README.md).
