@@ -73,4 +73,14 @@ pertenece a los autores del proyecto original:
 Este repositorio se enfoca en portar y extender el juego usando el motor **Godot Engine**,
 respetando la licencia original (GPL) y manteniendo el proyecto como software libre.
 
+## Colaboradores de este repositorio
+
+Gracias a todos los que han contribuido a este proyecto:
+
+<!-- ALL-CONTRIBUTORS-LIST:START -->
+<!-- Aquí GitHub puede generar automáticamente la lista de colaboradores -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+Para ver la lista completa de colaboradores, visita: [Colaboradores en GitHub](../../graphs/contributors)
+
 Para una lista más detallada de autores y colaboradores, ver [CREDITS.md](./CREDITS.es.md).
