@@ -1,0 +1,70 @@
+name: Validar Merge entre Ramas
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  validate-source-branch:
+    runs-on: ubuntu-latest
+    # Este job SE EJECUTA SOLO EN PRs QUE VAN A RAMAS PROTEGIDAS
+    if: |
+      contains(fromJson('["alpha","beta","rc","rtm","main"]'), github.base_ref)
+
+    steps:
+
+      # -------------------------------------------------
+      # 1️⃣ Definir el orden de las ramas
+      # -------------------------------------------------
+      - name: Definir secuencia de ramas
+        id: branches
+        run: |
+          # Mapeo: [destino] = origen-permitido
+          echo "map={\
+            \"alpha\":\"pre-alpha\",\
+            \"beta\":\"alpha\",\
+            \"rc\":\"beta\",\
+            \"rtm\":\"rc\",\
+            \"main\":\"rtm\"\
+          }" >> $GITHUB_OUTPUT
+
+      # -------------------------------------------------
+      # 2️⃣ Obtener rama destino (target) y rama origen (source)
+      # -------------------------------------------------
+      - name: Obtener ramas del PR
+        id: branches_info
+        run: |
+          TARGET="${{ github.base_ref }}"          # Rama a la que QUIEREN mergear
+          SOURCE="${{ github.head_ref }}"          # Rama desde la que MERGEAN
+          echo "target=$TARGET" >> $GITHUB_OUTPUT
+          echo "source=$SOURCE" >> $GITHUB_OUTPUT
+
+      # -------------------------------------------------
+      # 3️⃣ VALIDAR que el source sea EL UNICO PERMITIDO para ese target
+      # -------------------------------------------------
+      - name: Validar regla de merge
+        id: validation
+        run: |
+          TARGET="${{ steps.branches_info.outputs.target }}"
+          SOURCE="${{ steps.branches_info.outputs.source }}"
+          MAP='${{ steps.branches.outputs.map }}'
+
+          # Convertir el string a objeto bash
+          eval "$MAP"
+
+          # ¿Es una rama que tenemos configurada?
+          if [ -z "${map[$TARGET]+x}" ]; then
+            echo "✅ Rama destino '$TARGET' NO está bajo protección de secuencia. Merge permitido."
+            exit 0
+          fi
+
+          PERMITIDO="${map[$TARGET]}"
+
+          if [ "$SOURCE" != "$PERMITIDO" ]; then
+            echo "::error::❌ MERGE NO PERMITIDO!"
+            echo "::error::Para mergear hacia **$TARGET** solo se permite **$PERMITIDO** como rama origen."
+            echo "::error::Estás intentando mergear desde **$SOURCE**."
+            exit 1
+          else
+            echo "✅ Merge permitido: $SOURCE → $TARGET"
+          fi
