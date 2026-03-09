@@ -1,18 +1,10 @@
-name: Cascade Merge
+name: Cascade Merge (Manual)
 
 on:
-  push:
-    branches:
-      - pre-alpha
-      - alpha
-      - beta
-      - rc
-      - rtm
-
   workflow_dispatch:
     inputs:
       source_branch:
-        description: 'Source branch to start cascade from'
+        description: 'Rama origen para iniciar el cascade'
         required: true
         type: choice
         options:
@@ -22,7 +14,7 @@ on:
           - rc
           - rtm
       target_branch:
-        description: 'Target branch to merge into (optional, will cascade to all if empty)'
+        description: 'Rama destino (vacío = cascade hasta main)'
         required: false
         type: choice
         options:
@@ -31,6 +23,11 @@ on:
           - rc
           - rtm
           - main
+      create_prs:
+        description: 'Crear PRs en lugar de merge directo?'
+        required: true
+        type: boolean
+        default: true
 
 jobs:
   cascade-merge:
@@ -54,17 +51,10 @@ jobs:
       - name: Determine cascade path
         id: cascade
         run: |
-          # Definir el orden de las ramas
           BRANCHES=("pre-alpha" "alpha" "beta" "rc" "rtm" "main")
           
-          # Determinar la rama origen
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            SOURCE="${{ inputs.source_branch }}"
-            TARGET="${{ inputs.target_branch }}"
-          else
-            SOURCE="${{ github.ref_name }}"
-            TARGET=""
-          fi
+          SOURCE="${{ inputs.source_branch }}"
+          TARGET="${{ inputs.target_branch }}"
           
           echo "source=$SOURCE" >> $GITHUB_OUTPUT
           
@@ -80,42 +70,102 @@ jobs:
           TARGETS=()
           for ((i=$START_INDEX; i<${#BRANCHES[@]}; i++)); do
             TARGETS+=("${BRANCHES[$i]}")
-            # Si se especificó un target, detenerse ahí
             if [[ "$TARGET" != "" && "${BRANCHES[$i]}" == "$TARGET" ]]; then
               break
             fi
           done
           
           echo "targets=${TARGETS[@]}" >> $GITHUB_OUTPUT
+          echo "🎯 Cascade desde: $SOURCE"
+          echo "📋 Hacia: ${TARGETS[@]}"
 
-      - name: Execute cascade merge
-        id: merge
+      - name: Create Pull Requests
+        if: inputs.create_prs == true
         run: |
           SOURCE="${{ steps.cascade.outputs.source }}"
           TARGETS=(${{ steps.cascade.outputs.targets }})
           
-          echo "🚀 Starting cascade merge from $SOURCE"
-          echo "📋 Target branches: ${TARGETS[@]}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📝 Creando Pull Requests en cascada"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          
+          CURRENT_BRANCH="$SOURCE"
+          
+          for TARGET in "${TARGETS[@]}"; do
+            echo "🔀 Creando PR: $CURRENT_BRANCH → $TARGET"
+            
+            # Verificar si ya existe un PR abierto
+            EXISTING_PR=$(gh pr list --base "$TARGET" --head "$CURRENT_BRANCH" --state open --json number --jq '.[0].number')
+            
+            if [[ -n "$EXISTING_PR" ]]; then
+              echo "⚠️  Ya existe PR #$EXISTING_PR para $CURRENT_BRANCH → $TARGET"
+            else
+              # Crear PR
+              PR_URL=$(gh pr create \
+                --base "$TARGET" \
+                --head "$CURRENT_BRANCH" \
+                --title "🔀 Cascade: $CURRENT_BRANCH → $TARGET" \
+                --body "## 🔄 Cascade Merge Automático
+
+**Rama origen:** \`$CURRENT_BRANCH\`  
+**Rama destino:** \`$TARGET\`
+
+Este PR fue creado automáticamente por el workflow de cascade merge.
+
+### 📋 Orden de cascade:
+\`\`\`
+pre-alpha → alpha → beta → rc → rtm → main
+\`\`\`
+
+### ✅ Checklist antes de mergear:
+- [ ] Revisar cambios
+- [ ] Tests pasando
+- [ ] Agregar modificaciones si es necesario
+- [ ] Aprobar y mergear
+
+Después de mergear este PR, puedes continuar el cascade al siguiente nivel." \
+                --label "cascade-merge") || true
+              
+              if [[ -n "$PR_URL" ]]; then
+                echo "✅ PR creado: $PR_URL"
+              else
+                echo "❌ Error creando PR"
+              fi
+            fi
+            
+            echo ""
+            CURRENT_BRANCH="$TARGET"
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Direct Merge (sin PRs)
+        if: inputs.create_prs == false
+        run: |
+          SOURCE="${{ steps.cascade.outputs.source }}"
+          TARGETS=(${{ steps.cascade.outputs.targets }})
+          
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🔀 Ejecutando merges directos en cascada"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
           
           CURRENT_BRANCH="$SOURCE"
           MERGE_SUCCESS=true
           FAILED_BRANCH=""
           
           for TARGET in "${TARGETS[@]}"; do
-            echo ""
             echo "═══════════════════════════════════════"
             echo "🔀 Merging $CURRENT_BRANCH → $TARGET"
             echo "═══════════════════════════════════════"
             
-            # Checkout target branch
             git checkout "$TARGET"
             git pull origin "$TARGET"
             
-            # Intentar merge
             if git merge "$CURRENT_BRANCH" --no-edit -m "chore: cascade merge from $CURRENT_BRANCH to $TARGET"; then
               echo "✅ Merge successful: $CURRENT_BRANCH → $TARGET"
               
-              # Push changes
               if git push origin "$TARGET"; then
                 echo "✅ Push successful to $TARGET"
                 CURRENT_BRANCH="$TARGET"
@@ -127,32 +177,17 @@ jobs:
               fi
             else
               echo "❌ Merge conflict detected: $CURRENT_BRANCH → $TARGET"
-              echo "🔧 Creating pull request for manual resolution..."
-              
-              # Abortar merge
               git merge --abort
-              
-              # Crear PR en lugar de merge directo
-              gh pr create \
-                --base "$TARGET" \
-                --head "$CURRENT_BRANCH" \
-                --title "🔀 Cascade merge: $CURRENT_BRANCH → $TARGET" \
-                --body "⚠️ **Automatic merge failed due to conflicts**\n\nPlease resolve conflicts manually and merge this PR to continue the cascade.\n\n**Cascade path**: pre-alpha → alpha → beta → rc → rtm → main\n**Current step**: $CURRENT_BRANCH → $TARGET" \
-                --label "cascade-merge,merge-conflict" || true
-              
               MERGE_SUCCESS=false
               FAILED_BRANCH="$TARGET"
               break
             fi
+            
+            echo ""
           done
           
-          if [ "$MERGE_SUCCESS" = true ]; then
-            echo "merge_status=success" >> $GITHUB_OUTPUT
-            echo "✅ All cascade merges completed successfully!"
-          else
-            echo "merge_status=failed" >> $GITHUB_OUTPUT
-            echo "failed_branch=$FAILED_BRANCH" >> $GITHUB_OUTPUT
-            echo "❌ Cascade stopped at $FAILED_BRANCH"
+          if [ "$MERGE_SUCCESS" = false ]; then
+            echo "❌ Cascade detenido en: $FAILED_BRANCH"
             exit 1
           fi
         env:
@@ -165,15 +200,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Source Branch:** \`${{ steps.cascade.outputs.source }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Target Branches:** \`${{ steps.cascade.outputs.targets }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Mode:** ${{ inputs.create_prs == true && 'Pull Requests' || 'Direct Merge' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ steps.merge.outputs.merge_status }}" == "success" ]; then
-            echo "### ✅ Status: Success" >> $GITHUB_STEP_SUMMARY
-            echo "All merges completed successfully!" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ inputs.create_prs }}" == "true" ]]; then
+            echo "### 📝 Pull Requests creados" >> $GITHUB_STEP_SUMMARY
+            echo "Revisa la pestaña 'Pull Requests' para ver los PRs creados." >> $GITHUB_STEP_SUMMARY
           else
-            echo "### ❌ Status: Failed" >> $GITHUB_STEP_SUMMARY
-            echo "Cascade stopped at branch: \`${{ steps.merge.outputs.failed_branch }}\`" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "A pull request has been created for manual conflict resolution." >> $GITHUB_STEP_SUMMARY
+            echo "### ✅ Merge directo completado" >> $GITHUB_STEP_SUMMARY
           fi
-
