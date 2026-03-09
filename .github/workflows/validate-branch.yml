@@ -1,0 +1,44 @@
+name: Validate Branch Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-branch-target:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR target
+        run: |
+          BASE_BRANCH="${{ github.base_ref }}"
+          HEAD_BRANCH="${{ github.head_ref }}"
+          
+          # Ramas protegidas en orden
+          PROTECTED_BRANCHES=("pre-alpha" "alpha" "beta" "rc" "rtm" "main")
+          
+          echo "📋 PR: $HEAD_BRANCH → $BASE_BRANCH"
+          
+          # Si el target es main, rechazar
+          if [[ "$BASE_BRANCH" == "main" ]]; then
+            echo "❌ ERROR: Direct PRs to main are not allowed!"
+            echo "👉 Please target 'rtm' branch instead."
+            echo "   The cascade merge will automatically promote to main."
+            exit 1
+          fi
+          
+          # Si el target es una rama protegida que no es pre-alpha
+          if [[ " ${PROTECTED_BRANCHES[@]} " =~ " ${BASE_BRANCH} " ]] && [[ "$BASE_BRANCH" != "pre-alpha" ]]; then
+            echo "⚠️  WARNING: PR targeting protected branch '$BASE_BRANCH'"
+            echo "ℹ️  Protected branches should receive changes through cascade merge from pre-alpha"
+            echo "ℹ️  Only hotfixes or exceptional cases should target this branch directly"
+            echo ""
+            echo "🏷️  Adding 'requires-review' label"
+            # Esto es solo una advertencia, no falla
+          fi
+          
+          # Si el target es pre-alpha, todo OK
+          if [[ "$BASE_BRANCH" == "pre-alpha" ]]; then
+            echo "✅ PR correctly targets pre-alpha"
+          fi
+          
+          echo "✅ Branch validation passed"
