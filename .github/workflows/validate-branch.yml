@@ -13,8 +13,14 @@ on:
 jobs:
   validate-cascade-order:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    
     steps:
       - name: Validate cascade order
+        id: validate
         run: |
           BASE_BRANCH="${{ github.base_ref }}"
           HEAD_BRANCH="${{ github.head_ref }}"
@@ -46,12 +52,16 @@ jobs:
             
             if [[ "$BASE_BRANCH" == "pre-alpha" ]]; then
               echo "✅ Feature branches deben ir a pre-alpha: CORRECTO"
+              echo "status=success" >> $GITHUB_OUTPUT
               exit 0
             else
               echo "❌ ERROR: Feature branches solo pueden ir a pre-alpha"
               echo ""
               echo "👉 Cambiar el destino del PR a: pre-alpha"
               echo "   Después usar cascade merge para propagar"
+              echo "status=failed" >> $GITHUB_OUTPUT
+              echo "error_type=wrong_target" >> $GITHUB_OUTPUT
+              echo "expected_target=pre-alpha" >> $GITHUB_OUTPUT
               exit 1
             fi
           fi
@@ -67,6 +77,7 @@ jobs:
               echo ""
               echo "🔄 Orden válido de cascade:"
               echo "   pre-alpha → alpha → beta → rc → rtm → main"
+              echo "status=success" >> $GITHUB_OUTPUT
               exit 0
               
             elif [[ $DIFF -gt 1 ]]; then
@@ -88,10 +99,13 @@ jobs:
                 if [[ ${BRANCH_ORDER[$branch]} -eq $NEXT_POS ]]; then
                   echo "👉 El siguiente nivel después de '$HEAD_BRANCH' es: '$branch'"
                   echo "   Cambia el destino del PR a: $branch"
+                  echo "expected_target=$branch" >> $GITHUB_OUTPUT
                   break
                 fi
               done
               
+              echo "status=failed" >> $GITHUB_OUTPUT
+              echo "error_type=skipped_levels" >> $GITHUB_OUTPUT
               exit 1
               
             else
@@ -102,6 +116,8 @@ jobs:
               echo ""
               echo "⚠️  No puedes hacer merge de $HEAD_BRANCH → $BASE_BRANCH"
               echo "   porque $HEAD_BRANCH viene DESPUÉS de $BASE_BRANCH"
+              echo "status=failed" >> $GITHUB_OUTPUT
+              echo "error_type=reverse_merge" >> $GITHUB_OUTPUT
               exit 1
             fi
           fi
@@ -110,34 +126,84 @@ jobs:
           echo "⚠️  No se pudo determinar el orden"
           echo "   Origen: $HEAD_BRANCH"
           echo "   Destino: $BASE_BRANCH"
+          echo "status=unknown" >> $GITHUB_OUTPUT
           exit 0
 
       - name: Add comment to PR if failed
-        if: failure()
+        if: failure() && steps.validate.outputs.status == 'failed'
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## ❌ Validación de Cascade Fallida
+            const errorType = '${{ steps.validate.outputs.error_type }}';
+            const expectedTarget = '${{ steps.validate.outputs.expected_target }}';
+            const headBranch = '${{ github.head_ref }}';
+            const baseBranch = '${{ github.base_ref }}';
+            
+            let errorMessage = '';
+            
+            if (errorType === 'skipped_levels') {
+              errorMessage = `## ❌ Error: Niveles Saltados en el Cascade
               
-              Este PR no cumple con el orden de cascade requerido.
+Este PR está intentando saltar niveles en la cascada.
+
+**🔄 Orden correcto:**
+\`\`\`
+pre-alpha → alpha → beta → rc → rtm → main
+\`\`\`
+
+**📍 Estado actual:**
+- Origen: \`${headBranch}\`
+- Destino: \`${baseBranch}\`
+
+**💡 Solución:**
+El siguiente nivel después de \`${headBranch}\` es \`${expectedTarget}\`.
+
+👉 **Cambia el destino de este PR a: \`${expectedTarget}\`**
+
+Después puedes continuar el cascade al siguiente nivel.`;
+            } else if (errorType === 'wrong_target') {
+              errorMessage = `## ❌ Error: Destino Incorrecto
               
-              ### 🔄 Orden correcto de cascade:
-              \`\`\`
-              pre-alpha → alpha → beta → rc → rtm → main
-              \`\`\`
+Los feature branches solo pueden ir a \`pre-alpha\`.
+
+**📍 Estado actual:**
+- Origen: \`${headBranch}\`
+- Destino: \`${baseBranch}\` ❌
+
+**💡 Solución:**
+👉 **Cambia el destino de este PR a: \`pre-alpha\`**
+
+Luego puedes usar el workflow de Cascade Merge para propagar los cambios.`;
+            } else if (errorType === 'reverse_merge') {
+              errorMessage = `## ❌ Error: Merge en Dirección Inversa
               
-              ### 📋 Reglas:
-              1. **Feature branches** → solo pueden ir a \`pre-alpha\`
-              2. **Ramas protegidas** → deben seguir el orden secuencial
-              3. **No se pueden saltar niveles** en el cascade
+No se puede hacer merge en dirección contraria al cascade.
+
+**🔄 Orden correcto:**
+\`\`\`
+pre-alpha → alpha → beta → rc → rtm → main
+\`\`\`
+
+**📍 Estado actual:**
+- Intentando: \`${headBranch}\` → \`${baseBranch}\`
+
+Esto va en dirección contraria al flujo establecido.`;
+            } else {
+              errorMessage = `## ❌ Validación de Cascade Fallida
               
-              ### 💡 Solución:
-              - Cambia el branch destino de este PR al siguiente nivel en la cascada
-              - O usa el workflow **Cascade Merge** para propagar automáticamente
-              
-              Revisa los logs del check \`validate-cascade-order\` para más detalles.`
-            })
+Este PR no cumple con el orden de cascade requerido.
+
+Revisa los logs del workflow para más detalles.`;
+            }
+            
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: errorMessage
+              });
+            } catch (error) {
+              console.log('No se pudo crear el comentario:', error.message);
+            }
