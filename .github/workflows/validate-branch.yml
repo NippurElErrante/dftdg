@@ -3,16 +3,14 @@ name: Validate Cascade Order
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches:
-      - alpha
-      - beta
-      - rc
-      - rtm
-      - main
 
 jobs:
   validate-cascade-order:
     runs-on: ubuntu-latest
+    
+    # Solo ejecutar si es un Pull Request
+    if: github.event_name == 'pull_request'
+    
     permissions:
       contents: read
       pull-requests: write
@@ -24,6 +22,14 @@ jobs:
         run: |
           BASE_BRANCH="${{ github.base_ref }}"
           HEAD_BRANCH="${{ github.head_ref }}"
+          
+          # Verificar que tenemos las variables necesarias
+          if [[ -z "$BASE_BRANCH" || -z "$HEAD_BRANCH" ]]; then
+            echo "⚠️  Este workflow solo funciona en Pull Requests"
+            echo "   BASE_BRANCH: $BASE_BRANCH"
+            echo "   HEAD_BRANCH: $HEAD_BRANCH"
+            exit 0
+          fi
           
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo "🔍 Validando orden de cascade"
