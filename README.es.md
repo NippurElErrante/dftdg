@@ -32,12 +32,25 @@ Al contribuir en este repositorio, aceptas que tus contribuciones se publiquen b
 
 ## 🚀 Cómo Contribuir
 
-¡Las contribuciones son bienvenidas! Este es un proyecto ambicioso y la colaboración es clave. Si estás interesado en contribuir, ya sea con código, arte 2D/3D, sonido, documentación o ideas, por favor sigue estos pasos:
+¡Las contribuciones son bienvenidas! Este es un proyecto ambicioso y la colaboración es clave. 
 
-1.  **Fork** este repositorio.
-2.  Crea una rama para tu funcionalidad (`git checkout -b feature/nueva-funcionalidad`).
-3.  Realiza tus cambios y asegúrate de que el juego siga compilando.
-4.  Abre un **Pull Request** explicando tus cambios.
+**Para contribuir al código, por favor lee nuestra [Guía de Contribución](CONTRIBUTING.md)** que incluye:
+
+- 🌳 Flujo de trabajo con branches (cascade flow)
+- ⚙️ Reglas de merge y validación automática
+- 🤖 Workflows de GitHub Actions
+- ✨ Mejores prácticas y convenciones
+
+### Inicio Rápido
+
+Si estás interesado en contribuir, ya sea con código, arte 2D/3D, sonido, documentación o ideas, sigue estos pasos:
+
+1.  **Fork** este repositorio
+2.  Crea una rama desde `pre-alpha` para tu funcionalidad (`git checkout -b feature/nueva-funcionalidad`)
+3.  Realiza tus cambios y asegúrate de que el juego siga compilando
+4.  Abre un **Pull Request** a `pre-alpha` explicando tus cambios
+
+> 📖 **Documentación completa:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
 Si eres nuevo en Godot o en el proyecto, revisa la pestaña de "Issues" para ver en qué puedes ayudar.
 
@@ -48,14 +61,16 @@ Si eres nuevo en Godot o en el proyecto, revisa la pestaña de "Issues" para ver
 *   **Motor:** Godot 4.x (Stable)
 *   **Funcionalidades básicas:** [En progreso / Por hacer]
 *   **Gráficos:** [Migrando / Nativos]
+*   **Branching:** Cascade flow con 6 branches (pre-alpha → alpha → beta → rc → rtm → main)
+*   **CI/CD:** Validación automática de PRs con GitHub Actions
 
 ## 📦 Instalación
 
 (Instrucciones breves sobre cómo clonar y ejecutar el proyecto)
 
 ```bash
-git clone https://github.com/TU_USUARIO/TU_REPO.git
-cd TU_REPO
+git clone https://github.com/NippurElErrante/dftdg.git
+cd dftdg
 # Abre el proyecto en Godot y ejecuta
 ```
 
