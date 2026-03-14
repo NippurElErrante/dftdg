@@ -34,7 +34,7 @@ Al contribuir en este repositorio, aceptas que tus contribuciones se publiquen b
 
 ¡Las contribuciones son bienvenidas! Este es un proyecto ambicioso y la colaboración es clave. 
 
-**Para contribuir al código, por favor lee nuestra [Guía de Contribución](CONTRIBUTING.md)** que incluye:
+**Para contribuir al código, por favor lee nuestra [Guía de Contribución](CONTRIBUTING.es.md)** que incluye:
 
 - 🌳 Flujo de trabajo con branches (cascade flow)
 - ⚙️ Reglas de merge y validación automática

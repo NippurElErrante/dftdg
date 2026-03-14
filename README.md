@@ -34,7 +34,7 @@ By contributing to this repository, you agree that your contributions will be pu
 
 Contributions are welcome! This is an ambitious project, and collaboration is key.
 
-**To contribute code, please read our [Contributing Guide](CONTRIBUTING.en.md)** which includes:
+**To contribute code, please read our [Contributing Guide](CONTRIBUTING.md)** which includes:
 
 - 🌳 Branch workflow (cascade flow)
 - ⚙️ Merge rules and automatic validation
