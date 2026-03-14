@@ -1,0 +1,100 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# CODEOWNERS - Protección de Archivos Críticos
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Este archivo define qué usuarios/equipos deben aprobar cambios en archivos
+# específicos. El resto del repositorio NO requiere aprobación.
+#
+# Sintaxis:
+#   /path/to/file    @username
+#   /directory/      @username @another-user
+#   *.md             @team-name
+#
+# Documentación:
+#   https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────────────────────
+# 🤖 GitHub Actions Workflows - CRÍTICO
+# ───────────────────────────────────────────────────────────────────────────
+# Los workflows controlan validaciones y automatizaciones.
+# Solo admins pueden modificarlos para prevenir bypass de seguridad.
+
+/.github/workflows/                                @NippurElErrante
+/.github/workflows/validate-branch.yml             @NippurElErrante
+/.github/workflows/cascade-merge.yml               @NippurElErrante
+
+# ───────────────────────────────────────────────────────────────────────────
+# 🔐 Configuración de GitHub - CRÍTICO
+# ───────────────────────────────────────────────────────────────────────────
+# Protege este archivo mismo y otras configuraciones de GitHub.
+
+/.github/CODEOWNERS                                @NippurElErrante
+
+# ───────────────────────────────────────────────────────────────────────────
+# 📖 Documentación de Contribución - IMPORTANTE
+# ───────────────────────────────────────────────────────────────────────────
+# Define las reglas del proyecto. Solo maintainers pueden modificarlas.
+
+/CONTRIBUTING.md                                   @NippurElErrante
+/CONTRIBUTING.en.md                                @NippurElErrante
+
+# ───────────────────────────────────────────────────────────────────────────
+# ⚖️ Licencia - CRÍTICO
+# ───────────────────────────────────────────────────────────────────────────
+# La licencia no debe ser modificada sin aprobación del owner del proyecto.
+
+/LICENSE                                           @NippurElErrante
+
+# ───────────────────────────────────────────────────────────────────────────
+# 🎮 Configuración del Proyecto Godot - OPCIONAL
+# ───────────────────────────────────────────────────────────────────────────
+# Descomenta estas líneas si quieres proteger la configuración de Godot.
+
+# /project.godot                                   @NippurElErrante
+# /export_presets.cfg                              @NippurElErrante
+# /.godot/                                         @NippurElErrante
+
+# ───────────────────────────────────────────────────────────────────────────
+# 🔧 Scripts de Build y CI/CD - OPCIONAL
+# ───────────────────────────────────────────────────────────────────────────
+# Protege scripts de compilación, Docker, etc.
+
+# /scripts/build.sh                                @NippurElErrante
+# /scripts/deploy.sh                               @NippurElErrante
+# /Dockerfile                                      @NippurElErrante
+# /docker-compose.yml                              @NippurElErrante
+
+# ───────────────────────────────────────────────────────────────────────────
+# 🔒 Configuraciones de Seguridad - OPCIONAL
+# ───────────────────────────────────────────────────────────────────────────
+
+# /.gitignore                                      @NippurElErrante
+# /.gitattributes                                  @NippurElErrante
+
+# ───────────────────────────────────────────────────────────────────────────
+# 📝 ARCHIVOS SIN PROTECCIÓN (No requieren aprobación)
+# ───────────────────────────────────────────────────────────────────────────
+# Los siguientes archivos/directorios NO están protegidos y pueden ser
+# modificados libremente por cualquier contribuidor:
+#
+#   ✅ /src/**/*.gd              - Código fuente GDScript
+#   ✅ /addons/**/*              - Addons de Godot
+#   ✅ /assets/**/*              - Assets (modelos, texturas, audio)
+#   ✅ /scenes/**/*.tscn         - Escenas de Godot
+#   ✅ /resources/**/*           - Recursos del juego
+#   ✅ /docs/**/*.md             - Documentación general
+#   ✅ /tests/**/*               - Tests
+#   ✅ README.md                 - README principal
+#   ✅ README.es.md              - README en español
+#   ✅ /CREDITS.md               - Créditos
+#   ✅ /CREDITS.es.md            - Créditos en español
+#
+# Estos archivos solo requieren:
+#   - Pasar el check de validación de cascade (validate-branch.yml)
+#   - Seguir las reglas de CONTRIBUTING.md
+#
+# ═══════════════════════════════════════════════════════════════════════════
+# FIN DEL ARCHIVO - Todo lo no listado arriba NO requiere aprobación
+# ═══════════════════════════════════════════════════════════════════════════
