@@ -1,9 +1,9 @@
 # 🤝 Guía de Contribución
 
-[![Branching Strategy](https://img.shields.io/badge/Branching-Cascade_Flow-blue)](CONTRIBUTING.md)
+[![Branching Strategy](https://img.shields.io/badge/Branching-Cascade_Flow-blue)](CONTRIBUTING.es.md)
 [![Workflows](https://img.shields.io/badge/GitHub_Actions-Automated-green)](../../actions)
 
-> 🌐 **Prefer English?** [See English version](CONTRIBUTING.en.md)
+> 🌐 **Prefer English?** [See English version](CONTRIBUTING.md)
 
 Gracias por tu interés en contribuir a **Danger From The Deep - Godot Edition**. Este documento describe el flujo de trabajo, las convenciones y las mejores prácticas para colaborar en este proyecto.
 
