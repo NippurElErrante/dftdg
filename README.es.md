@@ -50,7 +50,7 @@ Si estás interesado en contribuir, ya sea con código, arte 2D/3D, sonido, docu
 3.  Realiza tus cambios y asegúrate de que el juego siga compilando
 4.  Abre un **Pull Request** a `pre-alpha` explicando tus cambios
 
-> 📖 **Documentación completa:** [CONTRIBUTING.md](CONTRIBUTING.md)
+> 📖 **Documentación completa:** [CONTRIBUTING.es.md](CONTRIBUTING.es.md)
 
 Si eres nuevo en Godot o en el proyecto, revisa la pestaña de "Issues" para ver en qué puedes ayudar.
 
