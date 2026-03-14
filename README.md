@@ -32,12 +32,25 @@ By contributing to this repository, you agree that your contributions will be pu
 
 ## 🚀 How to Contribute
 
-Contributions are welcome! This is an ambitious project, and collaboration is key. If you're interested in helping — whether with code, 2D/3D art, sound design, documentation, or ideas — please follow these steps:
+Contributions are welcome! This is an ambitious project, and collaboration is key.
 
-1.  **Fork** this repository.
-2.  Create a branch for your feature (`git checkout -b feature/new-feature`).
-3.  Make your changes and ensure the game still builds correctly.
-4.  Open a **Pull Request** explaining your changes.
+**To contribute code, please read our [Contributing Guide](CONTRIBUTING.md)** which includes:
+
+- 🌳 Branch workflow (cascade flow)
+- ⚙️ Merge rules and automatic validation
+- 🤖 GitHub Actions workflows
+- ✨ Best practices and conventions
+
+### Quick Start
+
+If you're interested in helping — whether with code, 2D/3D art, sound design, documentation, or ideas — follow these steps:
+
+1.  **Fork** this repository
+2.  Create a branch from `pre-alpha` for your feature (`git checkout -b feature/new-feature`)
+3.  Make your changes and ensure the game still builds correctly
+4.  Open a **Pull Request** to `pre-alpha` explaining your changes
+
+> 📖 **Full documentation:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
 If you're new to Godot or the project, check the "Issues" tab to see where help is needed.
 
@@ -48,14 +61,16 @@ Set sail with us on this exciting mission!
 *   **Engine:** Godot 4.x (Stable)
 *   **Basic Functionality:** [In Progress / To Do]
 *   **Graphics:** [Migrating / Native]
+*   **Branching:** Cascade flow with 6 branches (pre-alpha → alpha → beta → rc → rtm → main)
+*   **CI/CD:** Automatic PR validation with GitHub Actions
 
 ## 📦 Installation
 
 (Brief instructions on how to clone and run the project)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
+git clone https://github.com/NippurElErrante/dftdg.git
+cd dftdg
 # Open the project in Godot and run
 ```
 
