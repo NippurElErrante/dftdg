@@ -1,0 +1,163 @@
+name: Auto Cascade on Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - pre-alpha
+      - alpha
+      - beta
+      - rc
+      - rtm
+
+jobs:
+  auto-cascade:
+    # Solo ejecutar si el PR fue mergeado Y tiene el label "auto-cascade"
+    if: |
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'auto-cascade')
+    
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Determine next branch in cascade
+        id: cascade
+        run: |
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          
+          echo "PR was merged to: $BASE_BRANCH"
+          echo "Determining next branch in cascade..."
+          
+          case "$BASE_BRANCH" in
+            "pre-alpha")
+              NEXT_BRANCH="alpha"
+              ;;
+            "alpha")
+              NEXT_BRANCH="beta"
+              ;;
+            "beta")
+              NEXT_BRANCH="rc"
+              ;;
+            "rc")
+              NEXT_BRANCH="rtm"
+              ;;
+            "rtm")
+              NEXT_BRANCH="main"
+              ;;
+            *)
+              echo "No cascade needed for $BASE_BRANCH"
+              NEXT_BRANCH=""
+              ;;
+          esac
+          
+          echo "next_branch=$NEXT_BRANCH" >> $GITHUB_OUTPUT
+          echo "source_branch=$BASE_BRANCH" >> $GITHUB_OUTPUT
+          
+          if [[ -n "$NEXT_BRANCH" ]]; then
+            echo "Next cascade: $BASE_BRANCH -> $NEXT_BRANCH"
+          else
+            echo "Cascade ends here"
+          fi
+          
+      - name: Create cascade PR
+        if: steps.cascade.outputs.next_branch != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SOURCE="${{ steps.cascade.outputs.source_branch }}"
+          TARGET="${{ steps.cascade.outputs.next_branch }}"
+          
+          echo "Creating cascade PR: $SOURCE -> $TARGET"
+          
+          # Verificar si ya existe un PR abierto
+          EXISTING_PR=$(gh pr list --base "$TARGET" --head "$SOURCE" --state open --json number -q '.[0].number')
+          
+          if [[ -n "$EXISTING_PR" ]]; then
+            echo "PR already exists: #$EXISTING_PR"
+            echo "Adding auto-cascade label to existing PR..."
+            gh pr edit "$EXISTING_PR" --add-label "auto-cascade"
+            echo "Label added to PR #$EXISTING_PR"
+          else
+            echo "Creating new PR..."
+            
+            PR_BODY="## 🤖 Auto-Cascade Automático
+
+Este PR fue creado automáticamente por el sistema de cascade.
+
+**Rama origen:** \\`$SOURCE\\`  
+**Rama destino:** \\`$TARGET\\`
+
+### 📋 Origen del cascade
+
+- PR #${{ github.event.pull_request.number }} fue mergeado con label \\`auto-cascade\\`
+- El sistema creó automáticamente este PR para continuar el cascade
+
+### ⚡ Cascade automático habilitado
+
+Este PR tiene el label \\`auto-cascade\\`, por lo que al mergearse:
+- Si no es \\`main\\`, creará automáticamente el siguiente PR en la cascada
+- Si es \\`main\\`, el cascade termina aquí
+
+### ✅ Checklist antes de mergear
+
+- [ ] Revisar cambios
+- [ ] Verificar que tests pasen
+- [ ] Mergear cuando esté listo
+
+### 🔄 Cascade path
+
+\\`\\`\\`
+pre-alpha → alpha → beta → rc → rtm → main
+\\`\\`\\`
+
+---
+
+💡 **Tip:** Para detener el cascade automático, quita el label \\`auto-cascade\\` antes de mergear."
+            
+            PR_URL=$(gh pr create               --base "$TARGET"               --head "$SOURCE"               --title "🔄 Auto-cascade: $SOURCE → $TARGET"               --body "$PR_BODY"               --label "auto-cascade,automated" 2>&1) || true
+            
+            if echo "$PR_URL" | grep -q "https://"; then
+              echo "PR created successfully: $PR_URL"
+              echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+            else
+              echo "Warning: Could not create PR"
+              echo "Response: $PR_URL"
+            fi
+          fi
+          
+      - name: Create summary
+        if: always()
+        run: |
+          echo "## 🔄 Auto-Cascade Ejecutado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** PR #${{ github.event.pull_request.number }} mergeado" >> $GITHUB_STEP_SUMMARY
+          echo "**Label:** \\`auto-cascade\\` detectado" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Desde:** \\`${{ steps.cascade.outputs.source_branch }}\\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Hacia:** \\`${{ steps.cascade.outputs.next_branch }}\\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ -n "${{ steps.cascade.outputs.next_branch }}" ]]; then
+            echo "### ✅ Resultado" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "PR de cascade creado exitosamente" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "El PR tendrá el label \\`auto-cascade\\`, así que al mergearse continuará el cascade automáticamente." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ℹ️ Resultado" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No se requiere cascade adicional (final de la cadena)" >> $GITHUB_STEP_SUMMARY
+          fi
