@@ -50,7 +50,7 @@ If you're interested in helping — whether with code, 2D/3D art, sound design, 
 3.  Make your changes and ensure the game still builds correctly
 4.  Open a **Pull Request** to `pre-alpha` explaining your changes
 
-> 📖 **Full documentation:** [CONTRIBUTING.en.md](CONTRIBUTING.en.md)
+> 📖 **Full documentation:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
 If you're new to Godot or the project, check the "Issues" tab to see where help is needed.
 
