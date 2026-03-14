@@ -12,6 +12,7 @@ on:
 
 jobs:
   auto-cascade:
+    # Solo ejecutar si el PR fue mergeado Y tiene el label "auto-cascade"
     if: |
       github.event.pull_request.merged == true &&
       contains(github.event.pull_request.labels.*.name, 'auto-cascade')
@@ -81,6 +82,7 @@ jobs:
           
           echo "Creating cascade PR: $SOURCE -> $TARGET"
           
+          # Verificar si ya existe un PR abierto
           EXISTING_PR=$(gh pr list --base "$TARGET" --head "$SOURCE" --state open --json number -q '.[0].number')
           
           if [[ -n "$EXISTING_PR" ]]; then
@@ -91,21 +93,71 @@ jobs:
           else
             echo "Creating new PR..."
             
-            gh pr create \
-              --base "$TARGET" \
-              --head "$SOURCE" \
-              --title "Auto-cascade: $SOURCE to $TARGET" \
-              --body "Auto-cascade PR from $SOURCE to $TARGET. Triggered by PR #${{ github.event.pull_request.number }}. This PR has the auto-cascade label and will continue the cascade when merged." \
-              --label "auto-cascade,automated" || echo "Warning: Could not create PR"
+            PR_BODY="## 🤖 Auto-Cascade Automático
+
+Este PR fue creado automáticamente por el sistema de cascade.
+
+**Rama origen:** \\`$SOURCE\\`  
+**Rama destino:** \\`$TARGET\\`
+
+### 📋 Origen del cascade
+
+- PR #${{ github.event.pull_request.number }} fue mergeado con label \\`auto-cascade\\`
+- El sistema creó automáticamente este PR para continuar el cascade
+
+### ⚡ Cascade automático habilitado
+
+Este PR tiene el label \\`auto-cascade\\`, por lo que al mergearse:
+- Si no es \\`main\\`, creará automáticamente el siguiente PR en la cascada
+- Si es \\`main\\`, el cascade termina aquí
+
+### ✅ Checklist antes de mergear
+
+- [ ] Revisar cambios
+- [ ] Verificar que tests pasen
+- [ ] Mergear cuando esté listo
+
+### 🔄 Cascade path
+
+\\`\\`\\`
+pre-alpha → alpha → beta → rc → rtm → main
+\\`\\`\\`
+
+---
+
+💡 **Tip:** Para detener el cascade automático, quita el label \\`auto-cascade\\` antes de mergear."
+            
+            PR_URL=$(gh pr create               --base "$TARGET"               --head "$SOURCE"               --title "🔄 Auto-cascade: $SOURCE → $TARGET"               --body "$PR_BODY"               --label "auto-cascade,automated" 2>&1) || true
+            
+            if echo "$PR_URL" | grep -q "https://"; then
+              echo "PR created successfully: $PR_URL"
+              echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+            else
+              echo "Warning: Could not create PR"
+              echo "Response: $PR_URL"
+            fi
           fi
           
       - name: Create summary
         if: always()
         run: |
-          echo "## Auto-Cascade Executed" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔄 Auto-Cascade Ejecutado" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Trigger: PR #${{ github.event.pull_request.number }} merged" >> $GITHUB_STEP_SUMMARY
-          echo "Label: auto-cascade detected" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** PR #${{ github.event.pull_request.number }} mergeado" >> $GITHUB_STEP_SUMMARY
+          echo "**Label:** \\`auto-cascade\\` detectado" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "From: ${{ steps.cascade.outputs.source_branch }}" >> $GITHUB_STEP_SUMMARY
-          echo "To: ${{ steps.cascade.outputs.next_branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Desde:** \\`${{ steps.cascade.outputs.source_branch }}\\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Hacia:** \\`${{ steps.cascade.outputs.next_branch }}\\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ -n "${{ steps.cascade.outputs.next_branch }}" ]]; then
+            echo "### ✅ Resultado" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "PR de cascade creado exitosamente" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "El PR tendrá el label \\`auto-cascade\\`, así que al mergearse continuará el cascade automáticamente." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ℹ️ Resultado" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "No se requiere cascade adicional (final de la cadena)" >> $GITHUB_STEP_SUMMARY
+          fi
