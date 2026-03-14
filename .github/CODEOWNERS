@@ -1,0 +1,47 @@
+# ═══════════════════════════════════════════════════════════
+# CODEOWNERS - Protección de Archivos Críticos
+# ═══════════════════════════════════════════════════════════
+#
+# Los archivos listados aquí SOLO pueden ser modificados
+# con aprobación de los usuarios/equipos especificados.
+#
+# El resto del repositorio NO requiere aprobación.
+# ═══════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────
+# GitHub Workflows - Solo admins pueden modificar
+# ───────────────────────────────────────────────────────────
+/.github/workflows/                    @NippurElErrante
+/.github/workflows/*                   @NippurElErrante
+
+# ───────────────────────────────────────────────────────────
+# Configuración de GitHub - Solo admins
+# ───────────────────────────────────────────────────────────
+/.github/CODEOWNERS                    @NippurElErrante
+
+# ───────────────────────────────────────────────────────────
+# Documentación de Contribución - Solo maintainers
+# ───────────────────────────────────────────────────────────
+/CONTRIBUTING.md                       @NippurElErrante
+/CONTRIBUTING.es.md                    @NippurElErrante
+
+# ───────────────────────────────────────────────────────────
+# Archivos de Licencia - Solo admins
+# ───────────────────────────────────────────────────────────
+/LICENSE                               @NippurElErrante
+
+# ───────────────────────────────────────────────────────────
+# OPCIONAL: Otros archivos críticos
+# ───────────────────────────────────────────────────────────
+# /project.godot                       @NippurElErrante
+# /export_presets.cfg                  @NippurElErrante
+
+# ───────────────────────────────────────────────────────────
+# NOTA: Todo lo demás NO requiere aprobación
+# ───────────────────────────────────────────────────────────
+# Ejemplos de archivos SIN protección:
+#   - /src/**/*.gd
+#   - /assets/**/*
+#   - /docs/**/*.md
+#   - README.md
+#   - README.es.md
