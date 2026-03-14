@@ -1,0 +1,123 @@
+name: Cascade Merge
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Source branch'
+        required: true
+        type: choice
+        options:
+          - pre-alpha
+          - alpha
+          - beta
+          - rc
+          - rtm
+      target_branch:
+        description: 'Target branch (empty = cascade to main)'
+        required: false
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+          - rtm
+          - main
+      mode:
+        description: 'Create PRs or direct merge?'
+        required: true
+        type: choice
+        options:
+          - create-prs
+          - direct-merge
+        default: create-prs
+
+jobs:
+  cascade:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Determine targets
+        id: targets
+        run: |
+          BRANCHES=(pre-alpha alpha beta rc rtm main)
+          SOURCE="${{ inputs.source_branch }}"
+          TARGET="${{ inputs.target_branch }}"
+          
+          for i in "${!BRANCHES[@]}"; do
+            if [[ "${BRANCHES[$i]}" == "$SOURCE" ]]; then
+              START=$((i + 1))
+              break
+            fi
+          done
+          
+          TARGETS=""
+          for ((i=START; i<${#BRANCHES[@]}; i++)); do
+            TARGETS="$TARGETS ${BRANCHES[$i]}"
+            if [[ "$TARGET" != "" && "${BRANCHES[$i]}" == "$TARGET" ]]; then
+              break
+            fi
+          done
+          
+          echo "targets=$TARGETS" >> $GITHUB_OUTPUT
+          echo "Source: $SOURCE"
+          echo "Targets:$TARGETS"
+          
+      - name: Create PRs
+        if: inputs.mode == 'create-prs'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SOURCE="${{ inputs.source_branch }}"
+          
+          for TARGET in ${{ steps.targets.outputs.targets }}; do
+            echo "Creating PR: $SOURCE -> $TARGET"
+            
+            EXISTING=$(gh pr list --base "$TARGET" --head "$SOURCE" --state open --json number -q '.[0].number')
+            
+            if [[ -n "$EXISTING" ]]; then
+              echo "PR already exists: #$EXISTING"
+            else
+              gh pr create \
+                --base "$TARGET" \
+                --head "$SOURCE" \
+                --title "Cascade: $SOURCE -> $TARGET" \
+                --body "Automated cascade merge from $SOURCE to $TARGET" || echo "Failed to create PR"
+            fi
+            
+            SOURCE="$TARGET"
+          done
+          
+      - name: Direct merge
+        if: inputs.mode == 'direct-merge'
+        run: |
+          SOURCE="${{ inputs.source_branch }}"
+          
+          for TARGET in ${{ steps.targets.outputs.targets }}; do
+            echo "Merging: $SOURCE -> $TARGET"
+            
+            git checkout "$TARGET"
+            git pull origin "$TARGET"
+            
+            if git merge "$SOURCE" --no-edit -m "Cascade merge: $SOURCE -> $TARGET"; then
+              git push origin "$TARGET"
+              echo "Success: $SOURCE -> $TARGET"
+              SOURCE="$TARGET"
+            else
+              echo "Conflict detected, aborting"
+              git merge --abort
+              exit 1
+            fi
+          done

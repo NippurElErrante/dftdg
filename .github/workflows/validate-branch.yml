@@ -1,0 +1,57 @@
+name: Validate Cascade Order
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Check cascade order
+        run: |
+          echo "Validating PR: ${{ github.head_ref }} -> ${{ github.base_ref }}"
+          
+          declare -A ORDER=(
+            ["pre-alpha"]=1
+            ["alpha"]=2
+            ["beta"]=3
+            ["rc"]=4
+            ["rtm"]=5
+            ["main"]=6
+          )
+          
+          HEAD="${{ github.head_ref }}"
+          BASE="${{ github.base_ref }}"
+          
+          HEAD_POS=${ORDER[$HEAD]}
+          BASE_POS=${ORDER[$BASE]}
+          
+          if [[ -z "$HEAD_POS" ]]; then
+            if [[ "$BASE" == "pre-alpha" ]]; then
+              echo "OK: Feature branch to pre-alpha"
+              exit 0
+            else
+              echo "ERROR: Feature branches must target pre-alpha"
+              exit 1
+            fi
+          fi
+          
+          if [[ -n "$HEAD_POS" && -n "$BASE_POS" ]]; then
+            DIFF=$((BASE_POS - HEAD_POS))
+            
+            if [[ $DIFF -eq 1 ]]; then
+              echo "OK: Sequential cascade $HEAD -> $BASE"
+              exit 0
+            elif [[ $DIFF -gt 1 ]]; then
+              echo "ERROR: Cannot skip levels. $HEAD must go to next level first"
+              exit 1
+            else
+              echo "ERROR: Reverse merge not allowed"
+              exit 1
+            fi
+          fi
+          
+          exit 0
