@@ -1,0 +1,192 @@
+name: Manual Cascade (Full Auto)
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'Source branch (where to start)'
+        required: true
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+          - rtm
+      target_branch:
+        description: 'Target branch (where to end - inclusive)'
+        required: true
+        type: choice
+        options:
+          - beta
+          - rc
+          - rtm
+          - main
+      auto_merge:
+        description: 'Auto-merge PRs? (if false, only creates PRs)'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  manual-cascade:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate input
+        run: |
+          BRANCHES=(alpha beta rc rtm main)
+          SOURCE="${{ inputs.source_branch }}"
+          TARGET="${{ inputs.target_branch }}"
+          
+          # Encontrar índices
+          SOURCE_IDX=-1
+          TARGET_IDX=-1
+          
+          for i in "${!BRANCHES[@]}"; do
+            if [ "${BRANCHES[$i]}" = "$SOURCE" ]; then
+              SOURCE_IDX=$i
+            fi
+            if [ "${BRANCHES[$i]}" = "$TARGET" ]; then
+              TARGET_IDX=$i
+            fi
+          done
+          
+          if [ $SOURCE_IDX -eq -1 ] || [ $TARGET_IDX -eq -1 ]; then
+            echo "❌ Invalid branch selection"
+            exit 1
+          fi
+          
+          if [ $SOURCE_IDX -ge $TARGET_IDX ]; then
+            echo "❌ Source must be before target in the cascade"
+            exit 1
+          fi
+          
+          echo "✅ Validation passed: $SOURCE → $TARGET"
+
+      - name: Determine cascade path
+        id: path
+        run: |
+          BRANCHES=(alpha beta rc rtm main)
+          SOURCE="${{ inputs.source_branch }}"
+          TARGET="${{ inputs.target_branch }}"
+          
+          # Encontrar el índice de source
+          START_IDX=-1
+          for i in "${!BRANCHES[@]}"; do
+            if [ "${BRANCHES[$i]}" = "$SOURCE" ]; then
+              START_IDX=$i
+              break
+            fi
+          done
+          
+          # Construir la cascada hasta target (inclusive)
+          CASCADE=""
+          for i in "${!BRANCHES[@]}"; do
+            if [ $i -gt $START_IDX ]; then
+              CASCADE="$CASCADE,${BRANCHES[$i]}"
+              if [ "${BRANCHES[$i]}" = "$TARGET" ]; then
+                break
+              fi
+            fi
+          done
+          
+          # Remover la coma inicial
+          CASCADE="${CASCADE:1}"
+          
+          echo "branches=$CASCADE" >> $GITHUB_OUTPUT
+          echo "Cascade path: $SOURCE → $CASCADE"
+
+      - name: Execute cascade
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IFS=',' read -ra BRANCHES <<< "${{ steps.path.outputs.branches }}"
+          SOURCE="${{ inputs.source_branch }}"
+          AUTO_MERGE="${{ inputs.auto_merge }}"
+          
+          for TARGET in "${BRANCHES[@]}"; do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🔄 Processing: $SOURCE → $TARGET"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            
+            # Actualizar referencias
+            git fetch origin $SOURCE
+            git fetch origin $TARGET
+            
+            # Verificar si es necesario
+            if git merge-base --is-ancestor origin/$SOURCE origin/$TARGET; then
+              echo "✅ $TARGET already contains $SOURCE. Skipping."
+              SOURCE=$TARGET
+              continue
+            fi
+            
+            # Crear o encontrar PR
+            echo "📝 Creating/finding PR..."
+            PR_URL=$(gh pr list --base "$TARGET" --head "$SOURCE" --state open --json url --jq '.[0].url')
+            
+            if [ -z "$PR_URL" ]; then
+              # Crear nuevo PR
+              PR_URL=$(gh pr create \
+                --base "$TARGET" \
+                --head "$SOURCE" \
+                --title "🚀 Manual cascade: $SOURCE → $TARGET" \
+                --body "Manual cascade from \`$SOURCE\` to \`$TARGET\`
+
+**Triggered by:** Manual workflow
+**Auto-merge:** $AUTO_MERGE
+
+---
+_This PR was created by the manual cascade workflow._" 2>&1)
+              
+              if echo "$PR_URL" | grep -q "already exists"; then
+                PR_URL=$(gh pr list --base "$TARGET" --head "$SOURCE" --json url --jq '.[0].url')
+              fi
+            fi
+            
+            echo "✅ PR: $PR_URL"
+            PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+            
+            # Auto-merge si está habilitado
+            if [ "$AUTO_MERGE" = "true" ]; then
+              echo "🚀 Auto-merging PR #$PR_NUMBER..."
+              
+              # Intentar merge
+              if gh pr merge $PR_NUMBER --merge --admin 2>&1; then
+                echo "✅ Merged successfully"
+                sleep 3
+              else
+                echo "⚠️ Could not auto-merge. Check branch protection rules."
+                echo "ℹ️ You may need to:"
+                echo "   1. Add bypass permissions for GitHub Actions in rulesets"
+                echo "   2. Or merge manually and re-run this workflow"
+                exit 1
+              fi
+            else
+              echo "ℹ️ Auto-merge disabled. PR created, merge manually."
+            fi
+            
+            SOURCE=$TARGET
+          done
+          
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🎉 Cascade completed!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Manual Cascade Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Source:** ${{ inputs.source_branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Target:** ${{ inputs.target_branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Auto-merge:** ${{ inputs.auto_merge }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
