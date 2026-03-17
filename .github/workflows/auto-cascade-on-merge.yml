@@ -96,7 +96,7 @@ jobs:
               --head "$SOURCE" \
               --title "Auto-cascade: $SOURCE to $TARGET" \
               --body "Auto-cascade PR from $SOURCE to $TARGET. Triggered by PR #${{ github.event.pull_request.number }}. This PR has the auto-cascade label and will continue the cascade when merged." \
-              --label "auto-cascade,automated" || echo "Warning: Could not create PR"
+              --label "auto-cascade" || echo "Warning: Could not create PR"
           fi
           
       - name: Create summary
