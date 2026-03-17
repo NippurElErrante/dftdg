@@ -92,7 +92,7 @@ jobs:
               --head "$BASE_BRANCH" \
               --title "$PR_TITLE" \
               --body "$PR_BODY" \
-              --label "cascade-merge" \
+
               2>&1) || {
                 if echo "$PR_URL" | grep -q "already exists"; then
                   echo "⚠️  PR already exists. Retrieving existing PR..."
