@@ -139,13 +139,7 @@ jobs:
                 --base "$TARGET" \
                 --head "$SOURCE" \
                 --title "🚀 Manual cascade: $SOURCE → $TARGET" \
-                --body "Manual cascade from \`$SOURCE\` to \`$TARGET\`
-
-**Triggered by:** Manual workflow
-**Auto-merge:** $AUTO_MERGE
-
----
-_This PR was created by the manual cascade workflow._" 2>&1)
+                --body "Manual cascade from \`$SOURCE\` to \`$TARGET\`. **Triggered by:** Manual workflow. **Auto-merge:** $AUTO_MERGE. --- _This PR was created by the manual cascade workflow._" 2>&1)
               
               if echo "$PR_URL" | grep -q "already exists"; then
                 PR_URL=$(gh pr list --base "$TARGET" --head "$SOURCE" --json url --jq '.[0].url')
