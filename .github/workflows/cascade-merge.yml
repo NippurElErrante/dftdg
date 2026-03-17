@@ -78,9 +78,9 @@ jobs:
               continue
             fi
             
-            # Crear PR
-            PR_TITLE="🔄 Auto-cascade: $BASE_BRANCH → $TARGET_BRANCH"
-            PR_BODY="Automatic cascade merge from \\`$BASE_BRANCH\\` to \\`$TARGET_BRANCH\\`
+            # Crear PR (SIN backticks problemáticos)
+            PR_TITLE="Auto-cascade: $BASE_BRANCH to $TARGET_BRANCH"
+            PR_BODY="Automatic cascade merge from $BASE_BRANCH to $TARGET_BRANCH
 
 **Triggered by:** PR #${{ github.event.pull_request.number }}
 **Original PR:** ${{ github.event.pull_request.html_url }}
