@@ -68,8 +68,8 @@ jobs:
             echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             
             # Actualizar referencias locales
-            git fetch origin $BASE_BRANCH:$BASE_BRANCH
-            git fetch origin $TARGET_BRANCH:$TARGET_BRANCH
+            git fetch origin $BASE_BRANCH
+            git fetch origin $TARGET_BRANCH
             
             # Verificar si hay diferencias
             if git merge-base --is-ancestor $BASE_BRANCH origin/$TARGET_BRANCH; then
