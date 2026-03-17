@@ -1,0 +1,82 @@
+name: Auto-Cascade (Label)
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - pre-alpha
+      - alpha
+      - beta
+      - rc
+      - rtm
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  cascade-with-label:
+    if: |
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'auto-cascade')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine cascade path
+        id: path
+        run: |
+          case "${{ github.event.pull_request.base.ref }}" in
+            pre-alpha) echo "branches=alpha,beta,rc,rtm,main" >> $GITHUB_OUTPUT ;;
+            alpha) echo "branches=beta,rc,rtm,main" >> $GITHUB_OUTPUT ;;
+            beta) echo "branches=rc,rtm,main" >> $GITHUB_OUTPUT ;;
+            rc) echo "branches=rtm,main" >> $GITHUB_OUTPUT ;;
+            rtm) echo "branches=main" >> $GITHUB_OUTPUT ;;
+            *) echo "branches=" >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: Create cascade PRs
+        if: steps.path.outputs.branches != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          IFS=',' read -ra BRANCHES <<< "${{ steps.path.outputs.branches }}"
+          SOURCE="${{ github.event.pull_request.base.ref }}"
+          
+          for TARGET in "${BRANCHES[@]}"; do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "Creating PR: $SOURCE → $TARGET"
+            
+            # Verificar si el PR ya existe
+            EXISTING=$(gh pr list --base "$TARGET" --head "$SOURCE" --state open --json number --jq '.[0].number')
+            
+            if [ -n "$EXISTING" ]; then
+              echo "✅ PR #$EXISTING already exists"
+            else
+              # Crear PR con label auto-cascade
+              gh pr create \
+                --base "$TARGET" \
+                --head "$SOURCE" \
+                --title "🔄 Auto-cascade: $SOURCE → $TARGET" \
+                --body "Automated cascade from \`$SOURCE\` to \`$TARGET\`
+
+**Triggered by:** PR #${{ github.event.pull_request.number }}
+**Original PR:** ${{ github.event.pull_request.html_url }}
+
+---
+⚠️ **Merge this PR manually** to continue the cascade to the next level.
+
+_This PR was created automatically by the auto-cascade workflow._" \
+                --label "auto-cascade" || echo "⚠️ Failed to create PR (may already exist)"
+            fi
+            
+            # El siguiente PR usará este TARGET como SOURCE
+            SOURCE="$TARGET"
+          done
+          
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ Cascade PRs created successfully"
