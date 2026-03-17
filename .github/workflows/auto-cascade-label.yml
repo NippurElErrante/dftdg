@@ -62,15 +62,7 @@ jobs:
                 --base "$TARGET" \
                 --head "$SOURCE" \
                 --title "🔄 Auto-cascade: $SOURCE → $TARGET" \
-                --body "Automated cascade from \`$SOURCE\` to \`$TARGET\`
-
-**Triggered by:** PR #${{ github.event.pull_request.number }}
-**Original PR:** ${{ github.event.pull_request.html_url }}
-
----
-⚠️ **Merge this PR manually** to continue the cascade to the next level.
-
-_This PR was created automatically by the auto-cascade workflow._" \
+                --body "Automated cascade from $SOURCE to $TARGET. **Triggered by:** PR #${{ github.event.pull_request.number }} - **Original PR:** ${{ github.event.pull_request.html_url }} --- ⚠️ **Merge this PR manually** to continue the cascade to the next level. _This PR was created automatically by the auto-cascade workflow._" \
                 --label "auto-cascade" || echo "⚠️ Failed to create PR (may already exist)"
             fi
             
