@@ -12,164 +12,40 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  checks: read
 
 jobs:
-  cascade-merge:
+  cascade:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure Git
+      - name: Determine next branch
+        id: next
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Determine cascade path
-        id: cascade
-        run: |
-          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-          
-          case "$BASE_BRANCH" in
-            alpha)
-              echo "next_branches=beta,rc,rtm,main" >> $GITHUB_OUTPUT
-              ;;
-            beta)
-              echo "next_branches=rc,rtm,main" >> $GITHUB_OUTPUT
-              ;;
-            rc)
-              echo "next_branches=rtm,main" >> $GITHUB_OUTPUT
-              ;;
-            rtm)
-              echo "next_branches=main" >> $GITHUB_OUTPUT
-              ;;
-            *)
-              echo "next_branches=" >> $GITHUB_OUTPUT
-              ;;
+          case "${{ github.event.pull_request.base.ref }}" in
+            alpha) echo "branch=beta" >> $GITHUB_OUTPUT ;;
+            beta) echo "branch=rc" >> $GITHUB_OUTPUT ;;
+            rc) echo "branch=rtm" >> $GITHUB_OUTPUT ;;
+            rtm) echo "branch=main" >> $GITHUB_OUTPUT ;;
+            *) echo "branch=" >> $GITHUB_OUTPUT ;;
           esac
 
-      - name: Execute cascade merges
-        if: steps.cascade.outputs.next_branches != ''
+      - name: Create cascade PR
+        if: steps.next.outputs.branch != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          IFS=',' read -ra BRANCHES <<< "${{ steps.cascade.outputs.next_branches }}"
-          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          NEXT="${{ steps.next.outputs.branch }}"
+          BASE="${{ github.event.pull_request.base.ref }}"
           
-          for TARGET_BRANCH in "${BRANCHES[@]}"; do
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            echo "🔄 Processing: $BASE_BRANCH → $TARGET_BRANCH"
-            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            
-            # Actualizar referencias locales
-            git fetch origin $BASE_BRANCH
-            git fetch origin $TARGET_BRANCH
-            
-            # Verificar si hay diferencias
-            if git merge-base --is-ancestor $BASE_BRANCH origin/$TARGET_BRANCH; then
-              echo "✅ $TARGET_BRANCH ya contiene todos los cambios de $BASE_BRANCH. Skipping."
-              BASE_BRANCH=$TARGET_BRANCH
-              continue
-            fi
-            
-            # Crear PR (usando printf para el body multi-línea)
-            PR_TITLE="Auto-cascade: $BASE_BRANCH to $TARGET_BRANCH"
-            PR_BODY=$(printf "Automatic cascade merge from %s to %s\n\n**Triggered by:** PR #%s\n**Original PR:** %s\n\n---\n_This PR was created automatically by the cascade merge workflow._" \
-              "$BASE_BRANCH" \
-              "$TARGET_BRANCH" \
-              "${{ github.event.pull_request.number }}" \
-              "${{ github.event.pull_request.html_url }}")
-            
-            echo "📝 Creating PR..."
-            PR_URL=$(gh pr create \
-              --base "$TARGET_BRANCH" \
-              --head "$BASE_BRANCH" \
-              --title "$PR_TITLE" \
-              --body "$PR_BODY" \
-              --label "cascade-merge" \
-              2>&1) || {
-                if echo "$PR_URL" | grep -q "already exists"; then
-                  echo "⚠️  PR already exists. Retrieving existing PR..."
-                  PR_URL=$(gh pr list --base "$TARGET_BRANCH" --head "$BASE_BRANCH" --json url --jq '.[0].url')
-                else
-                  echo "❌ Failed to create PR: $PR_URL"
-                  exit 1
-                fi
-              }
-            
-            echo "✅ PR created/found: $PR_URL"
-            PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
-            
-            # Esperar a que pasen los checks (timeout 10 minutos)
-            echo "⏳ Waiting for checks to complete..."
-            TIMEOUT=600
-            ELAPSED=0
-            INTERVAL=15
-            
-            while [ $ELAPSED -lt $TIMEOUT ]; do
-              # Obtener estado de los checks
-              CHECK_STATUS=$(gh pr view $PR_NUMBER --json statusCheckRollup --jq '.statusCheckRollup[] | select(.status != "COMPLETED") | .status' | wc -l)
-              
-              if [ "$CHECK_STATUS" -eq "0" ]; then
-                # Todos los checks completados, verificar si pasaron
-                FAILED_CHECKS=$(gh pr view $PR_NUMBER --json statusCheckRollup --jq '.statusCheckRollup[] | select(.conclusion == "FAILURE" or .conclusion == "CANCELLED") | .name' | wc -l)
-                
-                if [ "$FAILED_CHECKS" -eq "0" ]; then
-                  echo "✅ All checks passed!"
-                  break
-                else
-                  echo "❌ Some checks failed. Aborting cascade."
-                  gh pr comment $PR_NUMBER --body "❌ Cascade merge aborted: checks failed."
-                  exit 1
-                fi
-              fi
-              
-              echo "⏳ Checks still running... ($ELAPSED/$TIMEOUT seconds)"
-              sleep $INTERVAL
-              ELAPSED=$((ELAPSED + INTERVAL))
-            done
-            
-            if [ $ELAPSED -ge $TIMEOUT ]; then
-              echo "❌ Timeout waiting for checks. Aborting."
-              gh pr comment $PR_NUMBER --body "❌ Cascade merge aborted: timeout waiting for checks."
-              exit 1
-            fi
-            
-            # Mergear el PR
-            echo "🚀 Merging PR #$PR_NUMBER..."
-            gh pr merge $PR_NUMBER --merge --auto || {
-              echo "⚠️  Auto-merge failed, trying direct merge..."
-              gh pr merge $PR_NUMBER --merge || {
-                echo "❌ Failed to merge PR. Manual intervention required."
-                gh pr comment $PR_NUMBER --body "❌ Auto-merge failed. Please review and merge manually."
-                exit 1
-              }
-            }
-            
-            echo "✅ Successfully merged $BASE_BRANCH → $TARGET_BRANCH"
-            
-            # Esperar un momento para que GitHub procese el merge
-            sleep 5
-            
-            # Actualizar BASE_BRANCH para el siguiente nivel
-            BASE_BRANCH=$TARGET_BRANCH
-          done
-          
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "🎉 Cascade merge completed successfully!"
-          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-      - name: Summary
-        if: always()
-        run: |
-          echo "### Cascade Merge Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Base Branch:** ${{ github.event.pull_request.base.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Triggered by PR:** #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          # Crear PR simple
+          gh pr create \
+            --base "$NEXT" \
+            --head "$BASE" \
+            --title "Cascade: $BASE → $NEXT" \
+            --body "Automated cascade from $BASE" || echo "PR ya existe o no es necesario"
