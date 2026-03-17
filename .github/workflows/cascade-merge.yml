@@ -78,20 +78,13 @@ jobs:
               continue
             fi
             
-            # Crear PR usando heredoc para evitar problemas con multi-línea
+            # Crear PR (usando printf para el body multi-línea)
             PR_TITLE="Auto-cascade: $BASE_BRANCH to $TARGET_BRANCH"
-            
-            # Usar cat con heredoc para el body multi-línea
-            PR_BODY=$(cat <<EOF
-Automatic cascade merge from $BASE_BRANCH to $TARGET_BRANCH
-
-**Triggered by:** PR #${{ github.event.pull_request.number }}
-**Original PR:** ${{ github.event.pull_request.html_url }}
-
----
-_This PR was created automatically by the cascade merge workflow._
-EOF
-)
+            PR_BODY=$(printf "Automatic cascade merge from %s to %s\n\n**Triggered by:** PR #%s\n**Original PR:** %s\n\n---\n_This PR was created automatically by the cascade merge workflow._" \
+              "$BASE_BRANCH" \
+              "$TARGET_BRANCH" \
+              "${{ github.event.pull_request.number }}" \
+              "${{ github.event.pull_request.html_url }}")
             
             echo "📝 Creating PR..."
             PR_URL=$(gh pr create \
