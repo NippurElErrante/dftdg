@@ -1,4 +1,4 @@
-# Danger From The Deep - Godot Edition .2
+# Danger From The Deep - Godot Edition .3
 
 ![Project Status](https://img.shields.io/badge/Status-In_Development-orange)
 ![Engine](https://img.shields.io/badge/Godot-4.x-%23478cbf)
